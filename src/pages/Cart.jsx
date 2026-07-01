@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useCart } from "../context/CartContext";
+import { useOrders } from "../context/OrderContext";
 import {
   CartIcon,
   TrashIcon,
@@ -78,6 +79,7 @@ function Cart() {
     totalPrice,
     toasts,
   } = useCart();
+  const { addOrder } = useOrders();
 
   const [checkoutStep, setCheckoutStep] = useState("cart");
   const [promoCode, setPromoCode] = useState("");
@@ -114,6 +116,24 @@ function Cart() {
     }
   };
 
+  const saveOrdersLocally = () => {
+    for (const item of cartItems) {
+      addOrder({
+        menuName: item.name,
+        menuImage: item.image,
+        menuPrice: item.price,
+        quantity: item.qty,
+        totalPrice: item.price * item.qty,
+        customerName: customerName.trim(),
+        customerPhone: customerPhone.trim(),
+        deliveryMethod,
+        paymentMethod,
+        address: buyerAddress.trim(),
+        note: customerNote.trim(),
+      });
+    }
+  };
+
   const handleCheckout = () => {
     if (!customerName.trim()) {
       alert("Mohon isi nama pemesan!");
@@ -144,6 +164,7 @@ function Cart() {
     });
 
     if (paymentMethod === "cash") {
+      saveOrdersLocally();
       setCheckoutStep("success");
       clearCart();
     } else {
@@ -152,6 +173,7 @@ function Cart() {
   };
 
   const handlePaymentConfirm = () => {
+    saveOrdersLocally();
     setCheckoutStep("success");
     clearCart();
   };
@@ -258,6 +280,7 @@ function Cart() {
 
               {/* Order receipt card */}
               <div
+                className="receipt-container"
                 style={{
                   width: "100%",
                   maxWidth: "420px",
